@@ -6,3 +6,4 @@ A PyTorch implementation of [Bayesian Flow Networks](https://arxiv.org/abs/2308.
 
 - [x] Discrete model with continuous-time loss, training and sampling (completed)
 - [x] SOTA performance on XOR dataset
+- [ ] Wiki Text8 Dataset
