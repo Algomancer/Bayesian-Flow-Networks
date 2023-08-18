@@ -6,7 +6,7 @@ A PyTorch implementation of [Bayesian Flow Networks](https://arxiv.org/abs/2308.
 
 ## Features
 
-![Correctness][https://github.com/Algomancer/Bayesian-Flow-Networks/blob/main/correctness.png]
+![Correctness](https://github.com/Algomancer/Bayesian-Flow-Networks/blob/main/correctness.png)
 
 - [x] Discrete model with continuous-time loss, training and sampling (completed)
 - [x] SOTA performance on XOR dataset
