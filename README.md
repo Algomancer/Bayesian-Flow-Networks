@@ -8,9 +8,7 @@ If you like my reference implimentations, come say hi!
 
 https://discord.gg/k8TEPHqn
 
-
 I am going to be using this repository to explore training dynamics of this new class of models. I will maintain a minimal implimentation in the Minimal.ipynd for a simple BFN implimentation. Everything else is an early work in progress.
-
 
 ![Paper Figure - BFN](https://github.com/Algomancer/Bayesian-Flow-Networks/blob/main/bfn.jpeg)
 
