@@ -2,7 +2,7 @@
 
 A PyTorch implementation of [Bayesian Flow Networks](https://arxiv.org/abs/2308.07037)
 
-Currently use of a non causal version of LLAMA2. 
+Currently use of a non causal version of LLAMA2. Currently training TinyStories Models matching https://github.com/karpathy/llama2.c/tree/master
 
 If you like my reference implimentations, come say hi!
 
