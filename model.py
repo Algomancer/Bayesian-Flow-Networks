@@ -2,34 +2,30 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from llama2 import BFNTransformer, ModelArgs
+from tokenizer import Tokenizer
+
 class BayesianFlowNetwork(nn.Module):
     """
     Bayesian Flow Network (BFN) model.
     
     Parameters
     ----------
+    Model: nn.Module
+        Neural network model.
     D : int, default=2
         Dimensionality of the data.
     K : int, default=2
         Number of classes.
-    hidden_dim : int, default=16
-        Dimension of the hidden layer.
     """
 
-    def __init__(self, D=2, K=2, hidden_dim=32, beta=1.0):
+    def __init__(self, model, D=2, K=2, beta=1.0):
         super(BayesianFlowNetwork, self).__init__()
         self.beta = beta
         self.D = D
         self.K = K
-        # Define the number of output classes based on K
-        output_classes = K if K > 2 else 1
-
-        # Define the neural network layers
-        self.layer = nn.Sequential(
-            nn.Linear(D * K + 1, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, D * output_classes)
-        )
+        # Define the neural network 
+        self.model = model
 
     def forward(self, theta, t):
         """
@@ -48,9 +44,10 @@ class BayesianFlowNetwork(nn.Module):
             Output tensor of shape (B, D, K).
         """
         theta = (theta * 2) - 1  # scaled in [-1, 1]
-        theta = theta.view(theta.shape[0], -1)  # (B, D * K)
-        input_ = torch.cat((theta, t.unsqueeze(-1)), dim=-1)
-        output = self.layer(input_)  # (B, D * K)
+        #0/0
+        #theta = theta.view(theta.shape[0], -1)  # (B, D * K)
+        #input_ = torch.cat((theta, t.unsqueeze(-1)), dim=-1)
+        output = self.model(theta, t)  # (B, D * K)
         output = output.view(output.shape[0], self.D, -1)
         return output
 
@@ -89,9 +86,6 @@ class BayesianFlowNetwork(nn.Module):
         return p0
 
     def process(self, x):
-        B, D = x.shape
-        # print(f"B {B}, D {D}")
-        
         # Step 1: Sample t from U(0, 1)
         t = torch.rand((x.size(0),), device=x.device, dtype=torch.float32)
 
@@ -101,7 +95,9 @@ class BayesianFlowNetwork(nn.Module):
         # Step 3: Sample y from N(beta * (K * one_hot(X)) 
         one_hot_x = F.one_hot(x, num_classes=self.K).float()  # (B, D, K)
         mean = beta[:, None, None] * (self.K * one_hot_x - 1)
+        #print("mean", mean.shape, mean)
         std = (beta * self.K)[:, None, None].sqrt()
+        #print("std", std.shape, std)
         eps = torch.randn_like(mean)
         y = mean + std * eps
 
@@ -118,8 +114,7 @@ class BayesianFlowNetwork(nn.Module):
 
     @torch.inference_mode()
     def sample(self, batch_size=128, nb_steps=10, device='cpu', eps_=1e-12):
-        self.eval()
-        
+        self.eval()  
         # get prior 
         theta = torch.ones((batch_size, self.D, self.K), device=device) / self.K
 
@@ -136,11 +131,13 @@ class BayesianFlowNetwork(nn.Module):
             var = (alpha * self.K)
             std = torch.full_like(mean, fill_value=var).sqrt()
             eps = torch.randn_like(e_k)
-            
             y = mean + std * eps  # (B, D, K)
+
             theta = F.softmax(y + torch.log(theta + eps_), dim=-1)
+
 
         k_probs_final = self.discrete_output_distribution(theta, torch.ones_like(t))
         k_final = torch.distributions.Categorical(probs=k_probs_final).sample()
 
         return k_final
+    
