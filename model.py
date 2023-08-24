@@ -117,7 +117,7 @@ class BayesianFlowNetwork(nn.Module):
         return L_infinity.mean()
 
     @torch.inference_mode()
-    def sample(self, batch_size=128, nb_steps=10, device='cpu'):
+    def sample(self, batch_size=128, nb_steps=10, device='cpu', eps_=1e-12):
         self.eval()
         
         # get prior 
@@ -138,9 +138,7 @@ class BayesianFlowNetwork(nn.Module):
             eps = torch.randn_like(e_k)
             
             y = mean + std * eps  # (B, D, K)
-            
-            theta_prime = torch.exp(y) * theta
-            theta = theta_prime / theta_prime.sum(-1, keepdim=True)
+            theta = F.log_softmax(y + torch.log(theta + eps_), dim=-1)
 
         k_probs_final = self.discrete_output_distribution(theta, torch.ones_like(t))
         k_final = torch.distributions.Categorical(probs=k_probs_final).sample()
