@@ -138,7 +138,7 @@ class BayesianFlowNetwork(nn.Module):
             eps = torch.randn_like(e_k)
             
             y = mean + std * eps  # (B, D, K)
-            theta = F.log_softmax(y + torch.log(theta + eps_), dim=-1)
+            theta = F.softmax(y + torch.log(theta + eps_), dim=-1)
 
         k_probs_final = self.discrete_output_distribution(theta, torch.ones_like(t))
         k_final = torch.distributions.Categorical(probs=k_probs_final).sample()
